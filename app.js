@@ -1,51 +1,76 @@
-const express = require('express')
-const app = express()
-const port = 3000
+const express = require('express');
+const app = express();
+const port = 3000;
 
-app.get('/', (req, res) => {    
-  res.send(
-    `<!DOCTYPE html>
-    <html>
-    <head>
-        <title>Выберите страницу</title>
-        <meta charset="utf-8" />
-    </head>
-    <body>
-        <input type="button" value="categories" onClick="document.location = 'categories'"/>
-        <input type="button" value="images" onClick="document.location = 'images'"/>
-        <input type="button" value="product" onClick="document.location = 'product'"/>
-        <input type="button" value="products" onClick="document.location = 'products'"/>
-    </body>
-    <html>`
-  )
+let basket = [];
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Methods", "GET, PATCH, PUT, POST, DELETE, OPTIONS");
+  next();
+})
+
+app.get('/basket', (req, res) => {
+  console.log('******** Call - basket - get ********');  
+  res.send( basket );
+})
+
+app.delete('/basket/:id', (req, res) => {
+  console.log(`******** Call - basket - delete ********`);  
+
+  let id = req.params['id']; 
+  
+  if (!id) res.sendStatus(500);
+
+  let ind = basket.findIndex((item)=>item.id == id);
+
+  if (ind > -1){
+    basket.splice(ind, 1);
+  }
+
+  res.sendStatus(200);
+})
+
+app.post('/basket/:id', (req, res) => {
+  console.log(`******** Call - basket - post ********`);  
+
+  let id = req.params['id']; 
+  
+  if (!id) res.sendStatus(500);
+
+  const products = require('./mappers/products.mock.ts');  
+  const product = products.find((item) => item.id == id);
+
+  if (product) {basket.push(product)};
+
+  res.sendStatus(200);
 })
 
 app.get('/categories', (req, res) => {
     console.log('******** Call - categories ********');
     const mapCategory = require('./mappers/categories.ts');  
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
     res.send( mapCategory );
 })
 
 app.get('/images', (req, res) => {
     console.log('******** Call - images ********');
     const images = require('./mappers/images.ts');
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');  
     res.send( images );
 })
 
-app.get('/product', (req, res) => {
+app.get('/product/:id', (req, res) => {
     console.log('******** Call - product ********');
-    const product = require('./mappers/product-info-mosk.ts');
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');  
+    let _id = req.params['id'];
+    console.log(`id: ` + _id);
+    const products = require('./mappers/product-info-mosk.ts');
+    let product = products.find(item => item.id == _id);
     res.send( product );
 })
 
 app.get('/products', (req, res) => {
     console.log('******** Call - products ********');
     const products = require('./mappers/products.mock.ts');  
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
-    //res.setHeader('Access-Control-Allow-Headers', 'origin, content-type, accept');
     res.send( products);
 })
 
